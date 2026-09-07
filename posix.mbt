@@ -19,11 +19,52 @@ pub fn parse_posix(input : String) -> Result[Array[ArgToken], ParseError] {
     if index < chars.length() {
       let start = index
       let buffer = StringBuilder()
-      while index < chars.length() && !is_command_space(chars[index]) {
-        buffer.write_char(chars[index])
-        index = index + 1
+      let mut in_single = false
+      let mut in_double = false
+      let mut quoted = false
+      let mut quote_start = -1
+      while index < chars.length() {
+        let current = chars[index]
+        if current == '\'' && !in_double {
+          if !in_single {
+            quote_start = index
+          }
+          in_single = !in_single
+          quoted = true
+          index = index + 1
+        } else if current == '"' && !in_single {
+          if !in_double {
+            quote_start = index
+          }
+          in_double = !in_double
+          quoted = true
+          index = index + 1
+        } else if is_command_space(current) && !in_single && !in_double {
+          break
+        } else {
+          buffer.write_char(current)
+          index = index + 1
+        }
       }
-      tokens.push(arg_token(buffer.to_string(), start, index, false))
+      if in_single {
+        return Err(
+          parse_error(
+            UnterminatedSingleQuote,
+            quote_start,
+            "unterminated POSIX single quote",
+          ),
+        )
+      }
+      if in_double {
+        return Err(
+          parse_error(
+            UnterminatedDoubleQuote,
+            quote_start,
+            "unterminated POSIX double quote",
+          ),
+        )
+      }
+      tokens.push(arg_token(buffer.to_string(), start, index, quoted))
     }
   }
   Ok(tokens)
