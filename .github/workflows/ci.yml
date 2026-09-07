@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up MoonBit
+        uses: hustcer/setup-moonbit@v1.22
+      - name: Show toolchain
+        run: moon version --all
+      - name: Check formatting
+        run: moon fmt --check
+      - name: Check native build
+        run: moon check --target native
+      - name: Run native tests
+        run: moon test --target native
+      - name: Check WebAssembly build
+        run: moon check --target wasm-gc
+      - name: Run WebAssembly tests
+        run: moon test --target wasm-gc
