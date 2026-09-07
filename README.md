@@ -1,5 +1,7 @@
 # MoonArgv
 
+[![CI](https://github.com/TangShiJi/moonargv/actions/workflows/ci.yml/badge.svg)](https://github.com/TangShiJi/moonargv/actions/workflows/ci.yml)
+
 MoonArgv 是纯 MoonBit 的跨平台命令行分词与安全引用库。它在“逻辑参数数组”和“单个命令行字符串”之间进行确定性转换，分别实现 POSIX 词法规则与 Windows Microsoft CRT 反斜杠/引号规则。
 
 项目不解析 `--flag` 等业务选项，也不执行变量展开、管道、重定向或命令替换。它解决的是更底层的问题：构建工具、进程启动器和测试框架怎样在不同平台上保留准确的参数边界。
@@ -43,7 +45,7 @@ moon test --target wasm-gc
 moon run cmd/main
 ```
 
-当前 MVP 包含 524 行生产代码、349 行测试代码和 48 项测试，核心包无第三方依赖。示例同时展示 POSIX 分词、Windows 命令渲染和可逆性检查。
+当前 MVP 包含 524 行生产代码、349 行测试代码和 48 项测试，核心包无第三方依赖。示例同时展示 POSIX 分词、Windows 命令渲染和可逆性检查；Windows/Linux 远端 CI 已通过。
 
 ## 边界与安全
 

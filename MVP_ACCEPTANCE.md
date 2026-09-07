@@ -13,6 +13,8 @@ moon run cmd/main
 
 预期结果：两种后端均有 48 项测试通过；示例输出 POSIX 的 5 个参数、Windows 引用后的命令字符串，并报告 `round trip: true`。
 
+2026-09-07 已在 GitHub Actions 的 Ubuntu 与 Windows 环境完成上述格式、构建和测试流程：https://github.com/TangShiJi/moonargv/actions/runs/34077836764
+
 ## 功能映射
 
 | 能力 | 可观察结果 | 测试文件 |
