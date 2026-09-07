@@ -1,6 +1,6 @@
 ///|
 /// Command-line grammar used for tokenization and serialization.
-pub enum Dialect {
+pub(all) enum Dialect {
   Posix
   Windows
 } derive(Debug, Eq)
