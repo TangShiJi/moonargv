@@ -14,7 +14,7 @@ test "command builder preserves logical argument boundaries" {
 test "command builder extends with empty and spaced values" {
   let command = @moonargv.command_line("tool")
     .unwrap()
-    .extend(["", "two words", "中文"])
+    .append_all(["", "two words", "中文"])
   assert_eq(command.argv(), ["tool", "", "two words", "中文"])
 }
 

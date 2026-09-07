@@ -37,7 +37,7 @@ pub fn CommandLine::argument(
 
 ///|
 /// Append multiple logical arguments without parsing or joining them.
-pub fn CommandLine::extend(
+pub fn CommandLine::append_all(
   self : CommandLine,
   arguments : Array[String],
 ) -> CommandLine {
