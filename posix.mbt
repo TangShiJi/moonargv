@@ -39,6 +39,32 @@ pub fn parse_posix(input : String) -> Result[Array[ArgToken], ParseError] {
           in_double = !in_double
           quoted = true
           index = index + 1
+        } else if current == '\\' && !in_single {
+          if index + 1 >= chars.length() {
+            return Err(
+              parse_error(
+                DanglingEscape,
+                index,
+                "POSIX escape has no following character",
+              ),
+            )
+          }
+          let next = chars[index + 1]
+          if in_double &&
+            next != '"' &&
+            next != '\\' &&
+            next != '$' &&
+            next != '`' &&
+            next != '\n' {
+            buffer.write_char('\\')
+            index = index + 1
+          } else {
+            if next != '\n' {
+              buffer.write_char(next)
+            }
+            quoted = true
+            index = index + 2
+          }
         } else if is_command_space(current) && !in_single && !in_double {
           break
         } else {
