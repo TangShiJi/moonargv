@@ -11,7 +11,7 @@ pub fn command_line(program : String) -> Result[CommandLine, ParseError] {
   if program.is_empty() {
     Err(parse_error(EmptyProgram, 0, "program must not be empty"))
   } else {
-    Ok({ program, arguments: [] })
+    Ok({ program, arguments: [], })
   }
 }
 

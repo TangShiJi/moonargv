@@ -73,12 +73,12 @@ fn parse_error(
   offset : Int,
   message : String,
 ) -> ParseError {
-  { kind, offset, message }
+  { kind, offset, message, }
 }
 
 ///|
 fn arg_token(value : String, start : Int, end : Int, quoted : Bool) -> ArgToken {
-  { value, start, end, quoted }
+  { value, start, end, quoted, }
 }
 
 ///|
