@@ -1,0 +1,6 @@
+_build/
+target/
+*.log
+coverage.json
+uncovered.log
+.DS_Store
