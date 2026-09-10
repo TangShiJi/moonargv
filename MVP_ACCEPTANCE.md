@@ -14,7 +14,7 @@ moon run examples/argparse_pipeline/cmd/main
 
 预期结果：两种后端均有 53 项测试通过；主示例输出 POSIX 参数与 Windows 可逆结果，组合示例输出 `staging cluster` 和 `true`。
 
-2026-09-07 已在 GitHub Actions 的 Ubuntu 与 Windows 环境完成上述格式、构建和测试流程：https://github.com/TangShiJi/moonargv/actions/runs/34077836764
+2026-09-10 已在 GitHub Actions 的 Ubuntu 与 Windows 环境完成上述格式、构建和 53 项双后端测试：https://github.com/TangShiJi/moonargv/actions/runs/34454213122
 
 ## 功能映射
 
