@@ -33,3 +33,34 @@ test "unified quote exposes deliberate dialect differences" {
     "\"two words\"",
   )
 }
+
+///|
+test "command line separates executable from argparse input" {
+  let parsed = @moonargv.parse_command_line(
+    "deploy --target 'staging cluster' --verbose",
+    @moonargv.Posix,
+  ).unwrap()
+  assert_eq(parsed.program(), "deploy")
+  assert_eq(parsed.arguments(), ["--target", "staging cluster", "--verbose"])
+  assert_eq(@moonargv.values(parsed.tokens()), [
+    "deploy", "--target", "staging cluster", "--verbose",
+  ])
+}
+
+///|
+test "command line adapter supports quoted Windows executable paths" {
+  let parsed = @moonargv.parse_command_line(
+    "\"C:\\Program Files\\tool.exe\" --output \"build folder\"",
+    @moonargv.Windows,
+  ).unwrap()
+  assert_eq(parsed.program(), "C:\\Program Files\\tool.exe")
+  assert_eq(parsed.arguments(), ["--output", "build folder"])
+}
+
+///|
+test "command line adapter rejects missing executable" {
+  let result = @moonargv.parse_command_line("  \t", @moonargv.Posix)
+  guard result is Err(error) else { fail("expected EmptyProgram") }
+  assert_eq(error.kind(), @moonargv.EmptyProgram)
+  assert_eq(error.offset(), 0)
+}

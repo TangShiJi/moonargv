@@ -15,7 +15,17 @@ pub struct ArgToken {
 } derive(Debug, Eq)
 
 ///|
-pub enum ParseErrorKind {
+/// A command line after lexical recovery. `program` is kept separate because
+/// semantic CLI parsers such as the standard-library `argparse` expect only
+/// the arguments that follow the executable name.
+pub struct ParsedCommandLine {
+  program : String
+  arguments : Array[String]
+  tokens : Array[ArgToken]
+} derive(Debug, Eq)
+
+///|
+pub(all) enum ParseErrorKind {
   UnterminatedSingleQuote
   UnterminatedDoubleQuote
   DanglingEscape
@@ -50,6 +60,23 @@ pub fn ArgToken::end(self : ArgToken) -> Int {
 ///|
 pub fn ArgToken::was_quoted(self : ArgToken) -> Bool {
   self.quoted
+}
+
+///|
+pub fn ParsedCommandLine::program(self : ParsedCommandLine) -> String {
+  self.program
+}
+
+///|
+/// Return a copy of the semantic argv tail, excluding the executable name.
+pub fn ParsedCommandLine::arguments(self : ParsedCommandLine) -> Array[String] {
+  self.arguments.copy()
+}
+
+///|
+/// Return a copy of all source-aware tokens, including the executable name.
+pub fn ParsedCommandLine::tokens(self : ParsedCommandLine) -> Array[ArgToken] {
+  self.tokens.copy()
 }
 
 ///|
