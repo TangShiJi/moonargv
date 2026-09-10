@@ -4,7 +4,7 @@
 
 MoonArgv 是纯 MoonBit 的跨平台命令行分词与安全引用库。它在“逻辑参数数组”和“单个命令行字符串”之间进行确定性转换，分别实现 POSIX 词法规则与 Windows Microsoft CRT 反斜杠/引号规则。
 
-项目不解析 `--flag` 等业务选项，也不执行变量展开、管道、重定向或命令替换。它解决的是更底层的问题：构建工具、进程启动器和测试框架怎样在不同平台上保留准确的参数边界。
+项目不解析 `--flag` 等业务选项，也不执行变量展开、管道、重定向或命令替换。它解决的是更底层的问题：构建工具、进程启动器和测试框架怎样在不同平台上保留准确的参数边界。MoonBit 标准库 `argparse` 接收已经切分好的 `Array[String]`，负责 flag、option、位置参数和子命令语义；MoonArgv 负责在这一步之前恢复 argv、在这一步之后安全生成命令文本，两者可直接组合而非相互替代。
 
 ## MVP 能力
 
@@ -14,6 +14,7 @@ MoonArgv 是纯 MoonBit 的跨平台命令行分词与安全引用库。它在�
 - 每个参数的源码字符范围和结构化错误；
 - 可配置参数数量与单参数长度限制；
 - 不经字符串拼接的 `CommandLine` 构建器；
+- 可拆分程序名与 argv 尾部的 `ParsedCommandLine`，便于接入标准库 `argparse`；
 - native 与 wasm-gc 双后端测试及 Windows/Linux CI。
 
 ## 快速使用
@@ -35,6 +36,10 @@ let recovered = @moonargv.values(
 assert_eq(recovered, command.argv())
 ```
 
+## 与标准库 `argparse` 的关系
+
+处理链为：`命令字符串 → MoonArgv → Array[String] → argparse → Matches`。MoonArgv 处理 POSIX/Windows 引号、反斜杠、参数边界、源码范围和可逆序列化；`argparse` 处理未知选项、必填值、冲突、默认值、环境变量、帮助与子命令。可运行的组合示例见 [`examples/argparse_pipeline`](examples/argparse_pipeline)，逐项对比见 [`docs/argparse-comparison.md`](docs/argparse-comparison.md)。
+
 ## 运行与验证
 
 ```bash
@@ -43,9 +48,10 @@ moon test --target native
 moon check --target wasm-gc
 moon test --target wasm-gc
 moon run cmd/main
+moon run examples/argparse_pipeline/cmd/main
 ```
 
-当前 MVP 包含 524 行生产代码、349 行测试代码和 48 项测试，核心包无第三方依赖。示例同时展示 POSIX 分词、Windows 命令渲染和可逆性检查；Windows/Linux 远端 CI 已通过。
+当前 MVP 包含 591 行生产代码、391 行测试代码和 53 项测试，核心包无第三方依赖。示例同时展示 POSIX 分词、Windows 命令渲染、可逆性检查，以及与标准库 `argparse` 的分层组合；Windows/Linux 远端 CI 已通过。
 
 ## 边界与安全
 

@@ -2,7 +2,7 @@
 
 ## 分层边界
 
-MoonArgv 将参数边界处理分为三层：`parse` 从文本恢复带源码范围的 `ArgToken`；`quote_argument` 与 `join` 将逻辑参数安全表示为指定方言文本；`CommandLine` 从程序名和参数直接构建 argv。库不启动进程，也不实现 shell 展开或 CLI 选项语义。
+MoonArgv 将参数边界处理分为三层：`parse` 从文本恢复带源码范围的 `ArgToken`；`parse_command_line` 进一步拆出程序名与 argv 尾部，可把尾部交给标准库 `argparse`；`quote_argument` 与 `join` 将逻辑参数安全表示为指定方言文本；`CommandLine` 从程序名和参数直接构建 argv。库不启动进程，也不实现 shell 展开或 CLI 选项语义。
 
 ## POSIX 词法
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- 新增 `ParsedCommandLine` 与 `parse_command_line`，分离程序名和 argv 尾部。
+- 新增与 MoonBit 标准库 `argparse` 的可运行组合示例及测试。
+- 补充 API 级职责对比、申报书说明和 2026-09-10 Mooncakes 全量查重。
+- 测试数增加至 53 项。
+
 ## 0.1.0 - 2026-09-07
 
 - 实现 POSIX 风格空白、引号、转义和续行分词。
