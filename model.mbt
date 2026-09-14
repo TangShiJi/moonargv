@@ -32,6 +32,10 @@ pub(all) enum ParseErrorKind {
   TooManyArguments
   ArgumentTooLong
   EmptyProgram
+  ResponseFileNotFound
+  ResponseFileCycle
+  ResponseFileDepthExceeded
+  InvalidResponsePath
 } derive(Debug, Eq)
 
 ///|
