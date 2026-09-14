@@ -30,3 +30,9 @@ jobs:
         run: moon check --target wasm-gc
       - name: Run WebAssembly tests
         run: moon test --target wasm-gc
+      - name: Run downstream integration examples
+        run: |
+          moon run examples/argparse_pipeline/cmd/main
+          moon run examples/build_pipeline/cmd/main
+      - name: Run release benchmark smoke workload
+        run: moon run --release bench/roundtrip
