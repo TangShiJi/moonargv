@@ -16,7 +16,7 @@ moon run --release bench/roundtrip
 
 预期结果：两种后端均有 67 项测试通过；其中每次执行 1,500 组确定性模糊输入和微软 CRT 对照表。两个下游示例分别输出 `argparse` 结果和编译器响应文件计划；基准输出固定 checksum `2590000`。
 
-2026-09-10 已在 GitHub Actions 的 Ubuntu 与 Windows 环境完成上述格式、构建和 53 项双后端测试：https://github.com/TangShiJi/moonargv/actions/runs/34454213122
+2026-09-14 已在 GitHub Actions 的 Ubuntu 与 Windows 环境完成格式、67 项双后端测试、两个下游示例和 release 基准烟测：https://github.com/TangShiJi/moonargv/actions/runs/34796347864
 
 ## 功能映射
 
