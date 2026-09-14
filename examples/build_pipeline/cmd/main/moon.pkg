@@ -1,0 +1,6 @@
+import {
+  "TangShiJi/moonargv",
+  "TangShiJi/moonargv/examples/build_pipeline",
+}
+
+pkgtype(kind: "executable")
