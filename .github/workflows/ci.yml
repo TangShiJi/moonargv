@@ -20,6 +20,7 @@ jobs:
         uses: hustcer/setup-moonbit@v1.22
         with:
           version: 0.10.9+6e6c44045
+          core-version: 0.10.9+6e6c44045
       - name: Show toolchain
         run: moon version --all
       - name: Check formatting
