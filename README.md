@@ -8,6 +8,8 @@ MoonArgv 是纯 MoonBit 的跨平台命令行分词与安全引用库。它在�
 
 ## MVP 能力
 
+下列能力属于必须保持兼容的 P0 范围，逐项输入和期望输出见 [可直接验收标准](ACCEPTANCE_CRITERIA.md)，不兼容项见 [兼容边界](COMPATIBILITY.md)。
+
 - POSIX 空白、单双引号、反斜杠转义与续行分词；
 - Windows CRT 引号、路径反斜杠、奇偶反斜杠加引号规则；
 - 两种方言的单参数引用和完整 `argv` 可逆序列化；
@@ -68,13 +70,13 @@ moon run examples/build_pipeline/cmd/main
 powershell -File tools/benchmark.ps1 -Runs 5
 ```
 
-当前 MVP 包含 863 行生产代码、637 行测试代码和 67 项测试，核心包无第三方依赖；其中模糊测试每次固定覆盖 1,500 组 argv、两种方言共 3,000 次往返。示例展示 POSIX/Windows 可逆性、与标准库 `argparse` 的分层组合，以及编译器长命令的响应文件规划；Windows/Linux CI 双后端验证。
+当前实现包含 863 行生产代码、732 行测试代码和 76 项测试，核心包无第三方依赖；模糊测试固定覆盖 1,500 组 argv、两种方言共 3,000 次往返。这些数量与性能结果仅作为 P0 行为的回归佐证，不替代逐条验收标准。示例覆盖 `argparse` 分层组合和编译器长命令响应文件规划；Windows/Linux CI 执行 native、wasm-gc 双后端验证。
 
 ## 边界与安全
 
 `parse` 是词法工具，不是 shell。POSIX 模式有意不展开 `$NAME`、通配符或 `$(...)`，Windows 模式也不解释 `cmd.exe` 的 `%NAME%`、`^` 或管道语法。若宿主 API 支持直接传递 `argv`，优先使用 `CommandLine::argv()`；只有目标 API 要求单个字符串时才使用 `render`。
 
-详细规则见 [设计说明](docs/design.md)，必要性和下游证据见 [集成说明](docs/downstream-integration.md)，性能见 [基线报告](docs/performance.md)，维护承诺见 [维护计划](MAINTENANCE.md)，可复现步骤见 [MVP 验收清单](MVP_ACCEPTANCE.md)，生态查重见 [Mooncakes 查重记录](docs/ecosystem-audit.md)。
+详细规则见 [设计说明](docs/design.md)，P0 合同见 [验收标准](ACCEPTANCE_CRITERIA.md) 与 [兼容边界](COMPATIBILITY.md)，必要性和下游证据见 [集成说明](docs/downstream-integration.md)，性能见 [基线报告](docs/performance.md)，维护承诺见 [维护计划](MAINTENANCE.md)，可复现步骤见 [MVP 验收清单](MVP_ACCEPTANCE.md)，生态查重见 [Mooncakes 查重记录](docs/ecosystem-audit.md)。
 
 ## 开源协议
 

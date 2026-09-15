@@ -1,30 +1,33 @@
 # MoonArgv 项目申报书
 
-## 1. 项目名称与仓库
+## 基本信息
 
-**MoonArgv——跨平台命令行分词与安全引用库**
+- **项目名称：** MoonArgv——跨平台命令参数边界与响应文件库
+- **参赛者：** TangShiJi（GitHub ID）
+- **联系方式：** https://github.com/TangShiJi；tangshiji@users.noreply.github.com
+- **GitHub 仓库：** https://github.com/TangShiJi/moonargv
+- **项目方向：** MoonBit 开发工具基础库 / 构建与进程参数基础设施
+- **项目性质及许可证：** 原创项目，非移植项目，MIT License
 
-GitHub：https://github.com/TangShiJi/moonargv
+## 项目简介与使用场景
 
-## 2. 项目简介、方向与通用性
+MoonArgv 在命令文本、逻辑 argv、响应文件、`argparse` 与进程 API 之间提供确定、可逆的参数边界转换，解决空参数、空格路径、引号和 Windows 结尾反斜杠经手工拼接后失真的问题。实际场景包括：大型编译/链接命令超过系统长度限制时生成响应文件；任务配置文本先恢复 argv 再交给标准库 `argparse`；测试或编辑器按源码范围定位引号错误并复现失败命令。核心无 IO，可供 native 进程库与 wasm-gc 宿主复用。
 
-MoonArgv 是纯 MoonBit 的命令参数边界基础库，在命令文本、逻辑 argv、响应文件、CLI 解析器与进程 API 之间做可验证转换。项目实现 POSIX 与 Windows CRT 规则、源码诊断和资源限制，不执行 shell，适用于构建系统、任务运行器、编辑器和子进程封装，并跨 native/wasm-gc 复用。
+## 核心功能范围
 
-## 3. 预期使用场景
+1. **POSIX 必做：** 解析空白、单双引号、反斜杠、续行、片段拼接和空参数；错误返回类型及字符偏移；`parse(join(argv))` 必须恢复原 argv。
+2. **Windows CRT 必做：** 实现双引号边界及引号前反斜杠奇偶规则，保留普通路径和带空格路径末尾反斜杠；Microsoft 官方 5 组常规参数示例必须一致，并满足往返不变量。
+3. **响应文件与进程必做：** 支持 `@path` 递归展开、`@@` 转义、缺失/循环/深度/资源限制；长命令生成 `[program, @path]` 与响应内容，重新展开必须等于原参数。
+4. **下游衔接必做：** 分离程序名和 argv 尾部供 `argparse` 使用；提供源码范围、结构化错误、输入上限及两个可运行集成示例。
 
-1. **大型构建/链接：** 构造含生成目录、中文或空格路径的编译 argv；超过平台阈值时生成 `@compile.rsp` 及进程启动数组，再展开验证边界一致。
-2. **任务配置接入 CLI：** 将 `deploy --target 'staging cluster'` 恢复为 argv，再交给标准库 `argparse` 校验 flag、option 和子命令。
-3. **跨平台进程启动：** 数组接口直接使用 argv；单字符串接口按 POSIX/Windows 安全渲染，避免手工拼接造成空参数、引号和结尾反斜杠歧义。
-4. **编辑器/测试平台：** 用 token 范围定位引号错误，把失败 argv 可逆写入日志；对外部响应文件限制嵌套、循环、参数数与长度。
+## 兼容边界
 
-## 4. 核心功能与 MVP
+POSIX 模式仅承诺 quoting 词法子集，不执行变量、通配符、命令替换、管道、重定向或注释；Windows 模式遵循 Microsoft CRT 常规参数规则，不模拟 `cmd.exe`、PowerShell、`CommandLineToArgvW` 或 CRT 的 `argv[0]` 历史特例。响应文件编码、BOM、磁盘 IO 和编译器私有格式由宿主适配；option、flag、子命令语义由标准库 `argparse` 负责。完整边界见 `COMPATIBILITY.md`。
 
-已完成双平台分词/引用、`ParsedCommandLine`、`CommandLine`；新增递归响应文件展开、`@@` 转义、缺失/循环/深度错误和 `InvocationPlan` 长命令降级。仓库有 21 个以上有效提交、67 项测试；微软 CRT 官方示例表全部对齐，固定模糊测试覆盖 1,500 组、3,000 次双方言往返。release 基准在 i9-12900H 上完成 20,000 次 `join+parse` 的中位数为 250.72 ms。两个真实链路示例分别集成 `argparse` 与编译器响应文件，Windows/Linux、native/wasm-gc CI 验证。
+## 可直接验收标准
 
-## 5. 与标准库 `argparse` 的区别
+评审者运行 native/wasm-gc 测试即可按编号验收：`P0-POSIX-01/02` 验证引号、空参数和错误偏移；`P0-WIN-01/02` 验证 CRT 反斜杠引号行为与路径往返；`P0-RSP-01/02` 验证嵌套展开及循环拒绝；`P0-PROC-01` 验证长编译命令响应文件无损恢复；`P0-BRIDGE-01` 验证 `argparse` 输入衔接；`P0-LIMIT-01` 验证展开后上限。每项输入和期望输出见 `ACCEPTANCE_CRITERIA.md`。当前 76 项测试、1,500 组确定性模糊样本、双系统/双后端 CI 及 20,000 次往返性能基线仅作为上述行为和回归能力的佐证，不代替验收标准。
 
-标准库 [`argparse`](https://github.com/moonbitlang/core/tree/main/argparse) 从**已切分的 `Array[String]`**开始，负责 option、flag、子命令、env/default 和帮助；不解释整段 POSIX/Windows 文本、不生成可逆命令或响应文件。MoonArgv 负责其前后的参数边界层，组合为 `配置文本 → MoonArgv → argv → argparse` 或 `构建 argv → MoonArgv → 进程/响应文件`。仅用手工拼接会在空参数、引号和 Windows 反斜杠处失真；调用 shell 又引入展开和注入面，因此该无 IO、双方言、可性质验证的中间层不能由 `argparse` 替代。
+## 原创性与参考说明
 
-## 6. 原创性、参考来源与查重
-
-原创、非移植项目，未复制第三方代码，MIT License；依据 [POSIX.1-2024](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html) 与 [Microsoft CRT 规则](https://learn.microsoft.com/cpp/c-language/parsing-c-command-line-arguments) 独立实现。2026-09-14 全量复核 Mooncakes 2,450 个模块，无同名或覆盖“双平台双向词法+响应文件+诊断/限制”的项目。维护上每周整理 issue、每次提交运行双系统/双后端测试，发布前复跑性能基线；后续完善编码/BOM、进程库适配和稳定错误模型，不扩展为 shell 或重复 `argparse`。
+项目未复制或移植第三方代码，依据 [POSIX.1-2024](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html) 和 [Microsoft CRT 文档](https://learn.microsoft.com/cpp/c-language/parsing-c-command-line-arguments) 独立实现。2026-09-15 检查 Mooncakes 2,487 个公开模块，无同名或覆盖“POSIX/Windows 双向词法、响应文件、诊断与限制”完整边界的项目。标准库 `argparse` 从已切分 argv 开始解释业务选项，与本项目上下游互补。

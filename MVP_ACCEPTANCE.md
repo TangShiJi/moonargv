@@ -14,7 +14,7 @@ moon run examples/build_pipeline/cmd/main
 moon run --release bench/roundtrip
 ```
 
-预期结果：两种后端均有 67 项测试通过；其中每次执行 1,500 组确定性模糊输入和微软 CRT 对照表。两个下游示例分别输出 `argparse` 结果和编译器响应文件计划；基准输出固定 checksum `2590000`。
+预期结果：两种后端均有 76 项测试通过；其中 `acceptance_test.mbt` 的 9 个测试与 `ACCEPTANCE_CRITERIA.md` 的 P0 编号逐项对应。测试还执行 1,500 组确定性模糊输入和微软 CRT 对照表。两个下游示例分别输出 `argparse` 结果和编译器响应文件计划；基准输出固定 checksum `2590000`。
 
 2026-09-14 已在 GitHub Actions 的 Ubuntu 与 Windows 环境完成格式、67 项双后端测试、两个下游示例和 release 基准烟测：https://github.com/TangShiJi/moonargv/actions/runs/34796347864
 
@@ -33,6 +33,7 @@ moon run --release bench/roundtrip
 | Windows CRT 对照 | 微软官方文档的 5 组系统行为示例 | `windows_crt_vectors_test.mbt` |
 | 模糊性质验证 | 1,500 组随机 argv 在两种方言下往返一致 | `fuzz_test.mbt` |
 | 性能基线 | release 下 20,000 次双向往返与 checksum | `bench/roundtrip` |
+| P0 直接验收 | 9 个编号行为与公开验收表逐项对应 | `acceptance_test.mbt`、`ACCEPTANCE_CRITERIA.md` |
 | 输入上限 | 参数数和字符数超限可定位 | `limits_test.mbt` |
 | 命令构建 | 程序名校验、argv 和渲染 | `command_test.mbt` |
 | 端到端流程 | 构建命令跨平台往返一致 | `integration_test.mbt` |
