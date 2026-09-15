@@ -1,5 +1,7 @@
 # MoonArgv MVP 验收清单
 
+复现工具链：MoonBit `0.10.9+6e6c44045`。GitHub Actions 固定使用同一版本，避免 `latest` 格式器变化造成与功能无关的失败。
+
 ## 自动验证
 
 ```bash
