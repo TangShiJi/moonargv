@@ -52,7 +52,7 @@ pub fn plan_invocation(
 ) -> Result[InvocationPlan, ParseError] {
   let argv = command.argv()
   if command.render(dialect).to_array().length() <= max_command_chars {
-    return Ok({ argv, response: None, })
+    return Ok({ argv, response: None })
   }
   if response_path.is_empty() {
     return Err(

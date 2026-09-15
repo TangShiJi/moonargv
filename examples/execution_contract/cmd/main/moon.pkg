@@ -1,0 +1,6 @@
+import {
+  "TangShiJi/moonargv",
+  "TangShiJi/moonargv/examples/execution_contract",
+}
+
+pkgtype(kind: "executable")

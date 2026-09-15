@@ -102,3 +102,69 @@ test "P0-LIMIT-01 expanded argv obeys final count limit" {
   guard expanded is Err(error) else { fail("expected argument limit") }
   assert_eq(error.kind(), @moonargv.TooManyArguments)
 }
+
+///|
+test "P0-ENV-01 Windows overlay is case-insensitive and redacts secrets" {
+  let plan = @moonargv.apply_environment(
+    [@moonargv.environment_entry("Path", "C:\\Windows")],
+    [
+      @moonargv.set_environment("PATH", "C:\\Moon\\bin"),
+      @moonargv.set_environment("TOKEN", "private", sensitive=true),
+    ],
+    @moonargv.WindowsEnvironment,
+  ).unwrap()
+  assert_eq(plan.audit_lines(), ["PATH=C:\\Moon\\bin", "TOKEN=<redacted>"])
+}
+
+///|
+test "P0-LOOKUP-01 Windows PATH and PATHEXT candidates are deterministic" {
+  let plan = @moonargv.executable_candidates(
+    "moonc",
+    ["C:\\Moon\\bin"],
+    @moonargv.WindowsHost,
+    windows_extensions=[".EXE", ".CMD"],
+  ).unwrap()
+  assert_eq(plan.candidates(), [
+    "C:\\Moon\\bin\\moonc", "C:\\Moon\\bin\\moonc.EXE", "C:\\Moon\\bin\\moonc.CMD",
+  ])
+}
+
+///|
+test "P0-AUDIT-01 secret values never enter the rendered audit command" {
+  let rendered = @moonargv.render_redacted(
+    ["deploy", "--token", "private", "--header=secret"],
+    @moonargv.Posix,
+    [
+      @moonargv.secret_after_flag("--token"),
+      @moonargv.secret_assignment("--header"),
+    ],
+  ).unwrap()
+  assert_false(rendered.contains("private"))
+  assert_false(rendered.contains("secret"))
+  assert_eq(@moonargv.values(@moonargv.parse_posix(rendered).unwrap()), [
+    "deploy", "--token", "<redacted>", "--header=<redacted>",
+  ])
+}
+
+///|
+test "P0-CONTRACT-01 one spec produces all host execution artifacts" {
+  let spec = @moonargv.execution_spec(
+      @moonargv.command_line("moonc")
+      .unwrap()
+      .append_all(["source path/main.mbt", "--token", "private"]),
+    )
+    .in_directory("/workspace")
+    .set_environment("CI", "true")
+    .redact(@moonargv.secret_after_flag("--token"))
+  let prepared = @moonargv.prepare_execution(
+    spec,
+    [],
+    ["/opt/moon/bin"],
+    @moonargv.PosixTarget,
+    limits=@moonargv.execution_limits(max_command_chars=12),
+  ).unwrap()
+  assert_eq(prepared.executable().candidates(), ["/opt/moon/bin/moonc"])
+  assert_eq(prepared.environment().audit_lines(), ["CI=true"])
+  assert_eq(prepared.invocation().argv(), ["moonc", "@.moonargv/arguments.rsp"])
+  assert_false(prepared.audit_command().contains("private"))
+}

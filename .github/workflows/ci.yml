@@ -34,5 +34,6 @@ jobs:
         run: |
           moon run examples/argparse_pipeline/cmd/main
           moon run examples/build_pipeline/cmd/main
+          moon run examples/execution_contract/cmd/main
       - name: Run release benchmark smoke workload
         run: moon run --release bench/roundtrip

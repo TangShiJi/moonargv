@@ -31,7 +31,7 @@ pub fn parse_command_line(
         for index = 1; index < tokens.length(); index = index + 1 {
           arguments.push(tokens[index].value())
         }
-        Ok({ program: tokens[0].value(), arguments, tokens, })
+        Ok({ program: tokens[0].value(), arguments, tokens })
       }
   }
 }
