@@ -2,81 +2,88 @@
 
 [![CI](https://github.com/TangShiJi/moonargv/actions/workflows/ci.yml/badge.svg)](https://github.com/TangShiJi/moonargv/actions/workflows/ci.yml)
 
-MoonArgv 是纯 MoonBit 的跨平台命令行分词与安全引用库。它在“逻辑参数数组”和“单个命令行字符串”之间进行确定性转换，分别实现 POSIX 词法规则与 Windows Microsoft CRT 反斜杠/引号规则。
+MoonArgv 是纯 MoonBit 的跨平台命令调用契约与进程规划库。它把程序、逻辑 argv、工作目录、环境变更、标准输入和秘密标记编译为确定性的 `PreparedExecution`：进程 argv 或响应文件、环境快照、PATH/PATHEXT 候选路径以及脱敏审计命令。真正的文件 IO、候选路径探测和进程启动交给宿主适配器。
 
-项目不解析 `--flag` 等业务选项，也不执行变量展开、管道、重定向或命令替换。它解决的是更底层的问题：构建工具、进程启动器和测试框架怎样在不同平台上保留准确的参数边界。MoonBit 标准库 `argparse` 接收已经切分好的 `Array[String]`，负责 flag、option、位置参数和子命令语义；MoonArgv 负责在这一步之前恢复 argv、在这一步之后安全生成命令文本，两者可直接组合而非相互替代。
+项目解决的是 process API 之前容易分散实现的边界规则，而不是另一套进程库或 CLI parser。MoonBit 标准库 `argparse` 解释程序内部已经切分的 argv；process/subprocess 库启动和管理进程；MoonArgv 负责在构建配置、任务描述、日志和这些 API 之间生成可验证的调用契约。
 
 ## MVP 能力
 
-下列能力属于必须保持兼容的 P0 范围，逐项输入和期望输出见 [可直接验收标准](ACCEPTANCE_CRITERIA.md)，不兼容项见 [兼容边界](COMPATIBILITY.md)。
-
-- POSIX 空白、单双引号、反斜杠转义与续行分词；
-- Windows CRT 引号、路径反斜杠、奇偶反斜杠加引号规则；
-- 两种方言的单参数引用和完整 `argv` 可逆序列化；
-- 每个参数的源码字符范围和结构化错误；
-- 可配置参数数量与单参数长度限制；
-- 不经字符串拼接的 `CommandLine` 构建器；
-- 可拆分程序名与 argv 尾部的 `ParsedCommandLine`，便于接入标准库 `argparse`；
-- 递归 `@response-file` 展开、`@@` 转义、循环/深度/资源限制；
-- 命令过长时生成“响应文件内容 + 进程 argv”的 `InvocationPlan`；
-- 微软 CRT 官方行为向量、1,500 组确定性模糊样本和 release 性能基线；
-- native 与 wasm-gc 双后端测试及 Windows/Linux CI。
+- POSIX quoting 与 Windows Microsoft CRT 分词、源码范围和可逆 argv 序列化；
+- 递归 `@response-file`、`@@` 转义、循环/深度/资源限制；
+- 长命令生成响应文件内容及进程 argv；
+- POSIX 大小写敏感和 Windows 大小写不敏感的环境覆盖、删除与稳定排序；
+- 环境名称、数量和值长度验证，敏感环境值的审计脱敏；
+- PATH/PATHEXT 可执行候选规划、显式路径识别和平台化去重；
+- 参数位置、flag 后值、赋值型 option 和字面值秘密脱敏；
+- `ExecutionSpec → PreparedExecution` 统一契约，携带工作目录与 stdin 策略；
+- 标准库 `argparse`、编译响应文件和部署执行契约三个可运行示例；
+- Windows/Linux CI 上 native 与 wasm-gc 双后端验证。
 
 ## 快速使用
 
 ```moonbit
-let tokens = @moonargv.parse(
-  "deploy --message 'release candidate'",
-  @moonargv.Posix,
+let command = @moonargv.command_line("deploy-agent")
+  .unwrap()
+  .append_all(["--token", "private", "--workspace", "release workspace"])
+let spec = @moonargv.execution_spec(command)
+  .in_directory("/workspace/app")
+  .set_environment("CI", "true")
+  .set_environment("DEPLOY_TOKEN", "private", sensitive=true)
+  .redact(@moonargv.secret_after_flag("--token"))
+  .stdin(@moonargv.ClosedInput)
+let prepared = @moonargv.prepare_execution(
+  spec,
+  [@moonargv.environment_entry("PATH", "/usr/bin")],
+  ["/opt/deploy/bin", "/usr/bin"],
+  @moonargv.PosixTarget,
 ).unwrap()
-inspect(@moonargv.values(tokens), content="[deploy, --message, release candidate]")
-
-let command = @moonargv.command_line("C:\\Program Files\\tool.exe").unwrap()
-  .argument("--output")
-  .argument("C:\\build folder\\")
-let text = command.render(@moonargv.Windows)
-let recovered = @moonargv.values(
-  @moonargv.parse(text, @moonargv.Windows).unwrap(),
-)
-assert_eq(recovered, command.argv())
+// 宿主探测 prepared.executable().candidates()，写可选响应文件，
+// 然后使用 prepared.invocation().argv() 启动；日志只记录 audit_command()。
 ```
 
-长编译命令可规划为响应文件，核心库只生成数据，不绑定文件系统或进程库：
+若只有单字符串任务配置，可先恢复 argv，再交给 `argparse`：
 
 ```moonbit
-let plan = @moonargv.plan_invocation(
-  command,
-  @moonargv.Windows,
-  30000,
-  "build\\compile.rsp",
+let parsed = @moonargv.parse_command_line(
+  "deploy --region 'cn shanghai'",
+  @moonargv.Posix,
 ).unwrap()
-// 宿主写入 plan.response()，然后直接启动 plan.argv()
+// parsed.arguments() 可直接传给 argparse
 ```
 
-## 与标准库 `argparse` 的关系
+## 分层关系
 
-处理链为：`命令字符串 → MoonArgv → Array[String] → argparse → Matches`。MoonArgv 处理 POSIX/Windows 引号、反斜杠、参数边界、源码范围、响应文件和可逆序列化；`argparse` 处理未知选项、必填值、冲突、默认值、环境变量、帮助与子命令。可运行的组合示例见 [`examples/argparse_pipeline`](examples/argparse_pipeline)，逐项对比见 [`docs/argparse-comparison.md`](docs/argparse-comparison.md)。
+| 层 | 负责 | 不负责 |
+| --- | --- | --- |
+| MoonArgv | argv 边界、响应文件、环境覆盖、候选规划、审计脱敏、执行契约 | 文件 IO、进程生命周期、业务 option |
+| `argparse` / CLI parser | flag、option、位置参数、帮助与子命令 | 命令字符串、PATH、环境快照、进程启动 |
+| process/subprocess 库 | 实际路径探测、spawn、stdin/stdout、退出状态 | 跨后端的声明式调用准备 |
+| task runner / build graph | DAG、缓存、并发调度 | 单个进程调用的跨平台边界细节 |
 
 ## 运行与验证
 
 ```bash
-moon check --target native
+moon fmt --check
 moon test --target native
-moon check --target wasm-gc
 moon test --target wasm-gc
-moon run cmd/main
 moon run examples/argparse_pipeline/cmd/main
 moon run examples/build_pipeline/cmd/main
-powershell -File tools/benchmark.ps1 -Runs 5
+moon run examples/execution_contract/cmd/main
+powershell -File tools/source-metrics.ps1
 ```
 
-当前实现包含 863 行生产代码、732 行测试代码和 76 项测试，核心包无第三方依赖；模糊测试固定覆盖 1,500 组 argv、两种方言共 3,000 次往返。这些数量与性能结果仅作为 P0 行为的回归佐证，不替代逐条验收标准。示例覆盖 `argparse` 分层组合和编译器长命令响应文件规划；Windows/Linux CI 执行 native、wasm-gc 双后端验证。
+当前仓库含 1,994 行生产 MoonBit 源码；排除空行和整行注释仍有 1,621 行，统计不含测试及 `_build`。20 个测试文件共 1,153 行，运行得到 99 项测试；模糊测试固定覆盖 1,500 组 argv。源码量的可复算口径见 [源码量核验](docs/source-metrics.md)，P0 输入与期望输出见 [验收标准](ACCEPTANCE_CRITERIA.md)。
 
-## 边界与安全
+## 边界与文档
 
-`parse` 是词法工具，不是 shell。POSIX 模式有意不展开 `$NAME`、通配符或 `$(...)`，Windows 模式也不解释 `cmd.exe` 的 `%NAME%`、`^` 或管道语法。若宿主 API 支持直接传递 `argv`，优先使用 `CommandLine::argv()`；只有目标 API 要求单个字符串时才使用 `render`。
+MoonArgv 不执行 shell 展开，不启动进程，不访问文件系统，不实现任务 DAG，也不替代 `argparse`。IO-free 设计使同一核心可在 Web/Wasm 预检，在 Windows/Linux 宿主执行。
 
-详细规则见 [设计说明](docs/design.md)，P0 合同见 [验收标准](ACCEPTANCE_CRITERIA.md) 与 [兼容边界](COMPATIBILITY.md)，必要性和下游证据见 [集成说明](docs/downstream-integration.md)，性能见 [基线报告](docs/performance.md)，维护承诺见 [维护计划](MAINTENANCE.md)，可复现步骤见 [MVP 验收清单](MVP_ACCEPTANCE.md)，生态查重见 [Mooncakes 查重记录](docs/ecosystem-audit.md)。
+- [兼容边界](COMPATIBILITY.md)
+- [设计说明](docs/design.md)
+- [下游集成与必要性](docs/downstream-integration.md)
+- [Mooncakes 生态查重](docs/ecosystem-audit.md)
+- [MVP 验收清单](MVP_ACCEPTANCE.md)
+- [维护计划](MAINTENANCE.md)
 
 ## 开源协议
 

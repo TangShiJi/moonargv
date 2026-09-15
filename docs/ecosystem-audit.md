@@ -4,29 +4,25 @@
 
 数据源：https://mooncakes.io/api/v0/modules
 
-扫描范围：接口返回的全部 2,487 个公开模块，检索模块名称、简介和关键词；精确检索 `moonargv`、`argvkit`、`moonshlex`、`shellwords` 为 0 个命中，并复核响应文件、Windows CRT 与 argv quoting 等功能词。
+扫描范围：接口返回的全部 2,488 个公开模块；检索模块名称和简介。精确及边界组合 `moonargv`、`moonexec`、`execspec`、`execplan`、`invocation contract`、`command invocation contract`、`argument boundary`、`secret redaction`、`PATHEXT` 均为 0 个命中。
 
-## 检索词
+## 相邻项目逐项对照
 
-精确名称检索：`moonargv`、`argvkit`、`moonshlex`、`shlex`、`shellwords`。
-
-功能检索：`argv`、`command line tokenizer`、`command-line tokenizer`、`shell lexer`、`shell quoting`、`POSIX quoting`、`Windows command line`、`Windows argv`、`command builder`。精确名称和核心功能组合均无命中。
-
-## 相关但不重复的项目
-
-| 项目 | 已有定位 | 与 MoonArgv 的边界 |
+| 项目 | Mooncakes 公开定位 | 与 MoonArgv 的实质边界 |
 | --- | --- | --- |
-| `DzmingLi/clap`、`Yoorkin/ArgParser`、`Milky2018/options`、`dowdiness/margs`、`cauchyQ/moonbit-argkit` | 从现成 argv 解析 flag、option 和子命令 | 不负责单个命令字符串与 argv 之间的跨平台可逆转换 |
-| [bobzhang/myshell](https://mooncakes.io/docs/bobzhang/myshell) | shell-free 进程 EDSL | 负责进程组合；MoonArgv 是无 IO、跨后端的词法与序列化层 |
-| [mizchi/moon-install](https://mooncakes.io/docs/mizchi/moon-install) | MoonBit CLI 安装器，内部提供 `shell_escape`、`shell_join` | 面向自身的 POSIX 输出辅助，没有公开声明 Windows CRT 解析、源码范围或资源限制 |
-| `mizchi/bit_utils` | Git 实现中的字符串和引用工具 | Git 内部通用工具，不是独立的双向跨平台 argv 库 |
-| [Haoxincode/moonbash](https://mooncakes.io/docs/Haoxincode/moonbash) | 纯内存 POSIX shell 沙箱 | 会解析并执行完整 shell；MoonArgv 不执行命令，并额外覆盖 Windows CRT |
-| `moonbit-community/proton_process`、`trkbt10/subprocess` | 原生子进程启动与管理 | 可消费 MoonArgv 生成的 argv，职责互补 |
+| `bobzhang/myshell@0.3.0` | shell-free process EDSL | 负责表达和执行进程组合；未声明 Windows CRT/响应文件、环境快照、PATH 候选和秘密审计的统一纯数据契约 |
+| `moonbit-community/proton_process@0.2.6` | Windows/Linux/macOS 原生子进程启动 | 是 MoonArgv 的执行端；MoonArgv 自身无 IO，可在 wasm-gc 预检 |
+| `sennenki/process@0.1.0` | 进程启动与管理 | 管理真实进程生命周期，不承担调用前的跨平台确定化 |
+| `trkbt10/subprocess@0.2.0` | Node.js child_process 风格子进程管理 | 提供 Node 风格执行接口，不提供跨 native/wasm-gc 的调用契约层 |
+| `totto2727/agent-cli-sdk@0.2.1` | JSONL agent CLI 进程基础 | 面向 agent CLI 协议，定位不是通用命令调用准备 |
+| `FrenchPicnic/which@0.1.3` | 跨平台查找已安装可执行文件 | 实际访问系统完成 which；MoonArgv 只生成可测试的 PATH/PATHEXT 候选并与环境、argv、审计组合 |
+| `cauchyQ/moonbit-argkit@0.1.0` 及其他 CLI parser | 从 argv 解析业务参数 | 位于程序内部，不恢复命令文本、不准备宿主执行契约 |
+| `ZSeanYves/MoonJust@0.1.3-rc.1`、`mizchi/bitflow@0.4.1`、`Zcxssxx/moon-ninja@0.3.2` | task runner、工作流或构建图 | 负责 DAG、缓存及调度；MoonArgv 只规范单个进程调用，可作为其下游基础层 |
 
-## 与 MoonBit 标准库 `argparse` 的边界
+## 与标准库 `argparse` 的边界
 
-标准库 `moonbitlang/core/argparse` 不属于 Mooncakes 第三方模块，但属于必须披露的相邻能力。其 `Command::parse(argv=..., env=...)` 从已切分的 `Array[String]` 开始，解释 flag、option、位置参数、子命令、env/default、帮助及约束，输出 `Matches`。MoonArgv 从单个 POSIX/Windows 命令字符串恢复 argv，或把 argv 可逆地引用为字符串；不解释 CLI 业务语义。两者的组合与 API 级对照见 [`argparse-comparison.md`](argparse-comparison.md)，仓库提供可运行的集成示例。
+`moonbitlang/core/argparse` 的入口是已切分的 `Array[String]`，负责 flag、option、位置参数、子命令、帮助与约束。MoonArgv 在其之前恢复任务配置的 argv，在其外部为宿主准备环境、响应文件、可执行路径候选和安全审计。两者组合示例见 `examples/argparse_pipeline`。
 
 ## 结论
 
-截至查重时间，Mooncakes 没有与 MoonArgv 同名的包，也没有同时提供 POSIX/Windows 分词、可逆引用、响应文件、源码位置和输入限制的项目。相邻第三方项目及标准库 `argparse` 已在申报书中披露。本结论仅对应 2026-09-15 的公开模块状态，正式发布前仍会再次全量复核。
+截至查重时间，没有 Mooncakes 包覆盖“POSIX/Windows argv + 响应文件 + 环境 overlay + PATH/PATHEXT 候选 + 参数/环境脱敏 + 统一执行契约”的完整边界。相邻项目不是隐瞒的竞品，而是 MoonArgv 的上游或下游：任务工具产生 `ExecutionSpec`，MoonArgv 确定化，process 库探测并执行。正式发布前仍须重新全量查询。

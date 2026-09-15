@@ -8,8 +8,15 @@ repository = "https://github.com/TangShiJi/moonargv"
 
 license = "MIT"
 
-keywords = [ "argv", "command-line", "quoting", "posix", "windows" ]
+keywords = [
+  "process-contract",
+  "argv",
+  "environment",
+  "redaction",
+  "posix",
+  "windows",
+]
 
 preferred_target = "native"
 
-description = "Cross-platform command-line tokenizer and safe argv quoting library for MoonBit"
+description = "Portable command invocation contracts, environment overlays, executable lookup plans, redacted audits, and argv quoting for MoonBit"
