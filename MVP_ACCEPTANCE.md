@@ -20,7 +20,7 @@ powershell -File tools/source-metrics.ps1
 
 预期结果：两种后端均有 99 项测试通过；其中 `acceptance_test.mbt` 的 13 个测试与 `ACCEPTANCE_CRITERIA.md` 的 P0 编号逐项对应。测试还执行 1,500 组确定性模糊输入和微软 CRT 对照表。三个下游示例分别输出 `argparse` 结果、编译器响应文件计划和部署执行契约；源码统计必须显示生产代码 1,994 行、排除空行及整行注释后 1,621 行。
 
-旧版本的 GitHub Actions 记录见历史提交；本次扩展必须由最新 `main` 工作流重新验证 Ubuntu/Windows、双后端、三个下游示例和 release 基准，链接在推送后回填。
+2026-09-15 已在 GitHub Actions 完成 Ubuntu/Windows、native/wasm-gc 双后端、三个下游示例和 release 基准验证：https://github.com/TangShiJi/moonargv/actions/runs/34974659517
 
 ## 功能映射
 
