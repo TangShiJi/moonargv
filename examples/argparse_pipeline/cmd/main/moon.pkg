@@ -1,5 +1,0 @@
-import {
-  "TangShiJi/moonargv/examples/argparse_pipeline",
-}
-
-pkgtype(kind: "executable")

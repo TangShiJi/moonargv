@@ -1,5 +1,0 @@
-import {
-  "TangShiJi/moonargv",
-}
-
-pkgtype(kind: "executable")

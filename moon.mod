@@ -1,4 +1,4 @@
-name = "TangShiJi/moonargv"
+name = "TangShiJi/moonpageflow"
 
 version = "0.1.0"
 
@@ -8,15 +8,8 @@ repository = "https://github.com/TangShiJi/moonargv"
 
 license = "MIT"
 
-keywords = [
-  "process-contract",
-  "argv",
-  "environment",
-  "redaction",
-  "posix",
-  "windows",
-]
+keywords = [ "pagination", "cursor", "keyset", "api", "database", "resume" ]
 
 preferred_target = "native"
 
-description = "Portable command invocation contracts, environment overlays, executable lookup plans, redacted audits, and argv quoting for MoonBit"
+description = "Stable cursor pagination, keyset query planning, snapshot guards, and resumable traversal for MoonBit"
