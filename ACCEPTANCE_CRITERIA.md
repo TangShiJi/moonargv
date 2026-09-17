@@ -27,4 +27,4 @@ moon run cmd/main
 pwsh -File tools/source-metrics.ps1
 ```
 
-Windows 与 Ubuntu 使用相同锁定版本工具链执行上述构建和测试。CI 页面：<https://github.com/TangShiJi/moonargv/actions/workflows/ci.yml>。
+Windows 与 Ubuntu 使用相同锁定版本工具链执行上述构建和测试。CI 页面：<https://github.com/TangShiJi/moonpageflow/actions/workflows/ci.yml>。

@@ -5,7 +5,7 @@
 - 项目名称：MoonPageFlow——稳定游标分页与可恢复遍历引擎
 - 参赛者：唐仕吉
 - 联系方式：t1622051617@qq.com / 13384247418
-- GitHub 仓库链接：https://github.com/TangShiJi/moonargv
+- GitHub 仓库链接：https://github.com/TangShiJi/moonpageflow
 - 项目方向：MoonBit Web/API 与数据访问基础设施
 - 项目性质：原创项目（非移植，MIT License）
 
