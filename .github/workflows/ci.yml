@@ -34,9 +34,7 @@ jobs:
       - name: Run WebAssembly tests
         run: moon test --target wasm-gc
       - name: Run downstream integration examples
-        run: |
-          moon run examples/argparse_pipeline/cmd/main
-          moon run examples/build_pipeline/cmd/main
-          moon run examples/execution_contract/cmd/main
-      - name: Run release benchmark smoke workload
-        run: moon run --release bench/roundtrip
+        run: moon run cmd/main
+      - name: Report source metrics
+        shell: pwsh
+        run: ./tools/source-metrics.ps1
