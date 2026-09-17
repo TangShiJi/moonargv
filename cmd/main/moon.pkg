@@ -1,0 +1,8 @@
+import {
+  "TangShiJi/moonpageflow",
+  "TangShiJi/moonpageflow/examples/activity_feed",
+  "TangShiJi/moonpageflow/examples/batch_export",
+  "TangShiJi/moonpageflow/examples/database_seek",
+}
+
+pkgtype(kind: "executable")
