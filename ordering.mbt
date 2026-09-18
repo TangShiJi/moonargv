@@ -252,8 +252,9 @@ fn validate_unique_rows(rows : Array[PageRow]) -> Result[Unit, PageError] {
 }
 
 ///|
-/// Stable insertion sort is used as a small, deterministic reference engine.
-/// Database integrations use the same comparison contract through seek plans.
+/// Stable bottom-up merge sort keeps the reference engine deterministic while
+/// avoiding quadratic behavior on larger in-memory result sets. Database
+/// integrations use the same comparison contract through seek plans.
 pub fn sort_rows(
   input : Array[PageRow],
   sort : Array[SortField],
@@ -278,22 +279,52 @@ pub fn sort_rows(
       Ok(_) => ()
     }
   }
-  let rows = input.copy()
-  for index = 1; index < rows.length(); index = index + 1 {
-    let mut cursor = index
-    while cursor > 0 {
-      let compared = match compare_rows(rows[cursor], rows[cursor - 1], sort) {
-        Ok(value) => value
-        Err(error) => return Err(error)
+  let mut source = input.copy()
+  let mut target = input.copy()
+  let mut width = 1
+  while width < source.length() {
+    let mut left = 0
+    while left < source.length() {
+      let middle = if left + width < source.length() {
+        left + width
+      } else {
+        source.length()
       }
-      if compared >= 0 {
-        break
+      let right = if left + width * 2 < source.length() {
+        left + width * 2
+      } else {
+        source.length()
       }
-      let previous = rows[cursor - 1]
-      rows[cursor - 1] = rows[cursor]
-      rows[cursor] = previous
-      cursor = cursor - 1
+      let mut first = left
+      let mut second = middle
+      for output = left; output < right; output = output + 1 {
+        if first >= middle {
+          target[output] = source[second]
+          second = second + 1
+        } else if second >= right {
+          target[output] = source[first]
+          first = first + 1
+        } else {
+          let compared = match
+            compare_rows(source[first], source[second], sort) {
+            Ok(value) => value
+            Err(error) => return Err(error)
+          }
+          if compared <= 0 {
+            target[output] = source[first]
+            first = first + 1
+          } else {
+            target[output] = source[second]
+            second = second + 1
+          }
+        }
+      }
+      left = left + width * 2
     }
+    let previous = source
+    source = target
+    target = previous
+    width = width * 2
   }
-  Ok(rows)
+  Ok(source)
 }
