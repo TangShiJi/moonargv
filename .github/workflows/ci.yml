@@ -26,15 +26,27 @@ jobs:
       - name: Check formatting
         run: moon fmt --check
       - name: Check native build
-        run: moon check --target native
+        run: moon check --target native --deny-warn
+      - name: Build native artifacts
+        run: moon build --target native --deny-warn
       - name: Run native tests
-        run: moon test --target native
+        run: moon test --target native --deny-warn
       - name: Check WebAssembly build
-        run: moon check --target wasm-gc
+        run: moon check --target wasm-gc --deny-warn
+      - name: Build WebAssembly artifacts
+        run: moon build --target wasm-gc --deny-warn
       - name: Run WebAssembly tests
-        run: moon test --target wasm-gc
+        run: moon test --target wasm-gc --deny-warn
       - name: Run downstream integration examples
-        run: moon run cmd/main
+        run: |
+          moon run examples/quickstart
+          moon run cmd/main
+      - name: Analyze branch coverage
+        if: matrix.os == 'ubuntu-latest'
+        run: moon coverage analyze
+      - name: Validate release package contents
+        if: matrix.os == 'ubuntu-latest'
+        run: moon package --list
       - name: Report source metrics
         shell: pwsh
         run: ./tools/source-metrics.ps1

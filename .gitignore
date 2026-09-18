@@ -3,4 +3,6 @@ target/
 *.log
 coverage.json
 uncovered.log
+pkg.generated.mbti
+_coverage/
 .DS_Store
