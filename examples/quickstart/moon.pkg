@@ -1,0 +1,5 @@
+import {
+  "TangShiJi/moonpageflow",
+}
+
+pkgtype(kind: "executable")
